@@ -18,7 +18,7 @@ const defaultProps: AppProps = {
 
 const renderApp = (props: AppProps = defaultProps) => {
   const modProps = Object.assign(defaultProps, props);
-  return render(<ApplicationForm {...props} />);
+  return render(<ApplicationForm {...modProps} />);
 };
 describe('ApplicationForm has elements', () => {
   // for some reason this doesn't work.
