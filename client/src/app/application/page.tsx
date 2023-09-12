@@ -1,6 +1,6 @@
 'use client';
 
-import ApplicationForm from '../containers/ApplicationForm';
+import ApplicationForm from '../components/ApplicationForm';
 
 const Application = () => {
   const props = {
