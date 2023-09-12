@@ -1,63 +1,23 @@
-import React, { useEffect, useRef } from 'react';
+import React, { useEffect, useRef, FormEvent } from 'react';
 
 // we do it this way for faster mapping of imported data with field data
 type Field = {
   [name: string]: {
     value: string | number | undefined;
-    type: string;
+    type?: string;
     title?: string;
+    readonly?: boolean;
   };
 };
 
 export type AppProps = {
   id?: number;
   user_id: number;
+  company_id: number;
+  company_name: string;
 };
 
-const inputFields: Array<Field> = [
-  {
-    company: {
-      value: undefined,
-      type: 'text',
-      title: 'Company Name',
-    },
-  },
-  {
-    position: {
-      value: undefined,
-      type: 'text',
-      title: 'Position Title',
-    },
-  },
-  {
-    application_url: {
-      value: undefined,
-      type: 'text',
-      title: 'Application URL',
-    },
-  },
-  {
-    salary: {
-      value: undefined,
-      type: 'text',
-      title: 'Listed Salary',
-    },
-  },
-  {
-    status: {
-      value: 'interested',
-      type: 'text',
-      title: 'Application Status',
-    },
-  },
-  {
-    notes: {
-      value: undefined,
-      type: 'textarea',
-      title: 'Notes & Reflections',
-    },
-  },
-];
+export function validateData(data: FormData) {}
 
 const ApplicationForm = (props: AppProps) => {
   // a function to call if the application has an id
@@ -72,7 +32,70 @@ const ApplicationForm = (props: AppProps) => {
     }
   }
 
-  async function save(formData: FormData) {
+  const inputFields: Array<Field> = [
+    {
+      company: {
+        value: props.company_name,
+        type: 'text',
+        title: 'Company Name',
+        readonly: true,
+      },
+    },
+    {
+      position: {
+        value: undefined,
+        type: 'text',
+        title: 'Position Title',
+      },
+    },
+    {
+      application_url: {
+        value: undefined,
+        type: 'text',
+        title: 'Application URL',
+      },
+    },
+    {
+      salary: {
+        value: undefined,
+        type: 'text',
+        title: 'Listed Salary',
+      },
+    },
+    {
+      status: {
+        value: 'interested',
+        type: 'text',
+        title: 'Application Status',
+      },
+    },
+    {
+      notes: {
+        value: undefined,
+        type: 'textarea',
+        title: 'Notes & Reflections',
+      },
+    },
+  ];
+
+  // hidden fields within the React Element to use props
+  const hiddenFields: Array<Field> = [
+    {
+      user_id: {
+        value: props.user_id,
+      },
+    },
+    {
+      company_id: {
+        value: props.company_id,
+      },
+    },
+  ];
+
+  async function save(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+
+    const formData = new FormData(event.currentTarget);
     const res = await fetch('http://localhost:4000/SAVE PATH', {
       method: 'POST',
       body: JSON.stringify(formData),
@@ -83,16 +106,6 @@ const ApplicationForm = (props: AppProps) => {
 
     // what do we do from here? return home
   }
-
-  // hidden fields within the React Element to use props
-  const hiddenFields: Array<Field> = [
-    {
-      user_id: {
-        value: props.user_id,
-        type: 'hidden',
-      },
-    },
-  ];
 
   useEffect(() => {
     if (props.id) {
@@ -109,25 +122,36 @@ const ApplicationForm = (props: AppProps) => {
   const refs = useRef(new Array(inputFields.length));
 
   return (
-    <form action={save}>
+    <form
+      onSubmit={save}
+      aria-label='edit_application'
+    >
       {hiddenFields.map((field: Field) => {
         const name = Object.keys(field)[0];
 
         return (
-          <div className='hidden'>
+          <div
+            className='hidden'
+            key={name}
+          >
             <input
-              type={field[name].type}
+              type='hidden'
               name={name}
               value={field[name].value}
+              data-testid={name}
             />
           </div>
         );
       })}
       {inputFields.map((field: Field, i: number) => {
         const name = Object.keys(field)[0];
+        const isReadOnly = field[name].readonly === true;
 
         return (
-          <div className='field'>
+          <div
+            className='field'
+            key={name}
+          >
             <label htmlFor={name}>{field[name].title}</label>
             <input
               type={field[name].type}
@@ -135,12 +159,19 @@ const ApplicationForm = (props: AppProps) => {
               name={name}
               defaultValue={field[name].value}
               ref={(el) => (refs.current[i] = el)}
+              readOnly={isReadOnly}
+              data-testid={name}
             />
           </div>
         );
       })}
       <div className='field'>
-        <button>Save Application</button>
+        <button
+          data-testid='submit_button'
+          key='submit'
+        >
+          Save Application
+        </button>
       </div>
     </form>
   );
