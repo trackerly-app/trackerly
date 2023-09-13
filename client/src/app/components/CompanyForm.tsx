@@ -2,22 +2,44 @@ import React, { useEffect, useRef, FormEvent } from 'react';
 import axios from 'axios';
 import { InputField } from '../../../types';
 
-// we do it this way for faster mapping of imported data with field data
-
-export type AppProps = {
-  id?: number;
+export type CompanyProps = {
   user_id: number;
-  company_id: number;
-  company_name: string;
+  id?: number;
 };
 
-export function validateData(data: FormData) {}
+export async function getIcon(url: string): Promise<string> {
+  // I think if we are going to store this in a database, we should probably store a binary string
+  // representing the .png/.jpg/.ico image found. Not sure what's best
+  let icon: string = 'I';
 
-// a function to call if the application has an id
+  try {
+    // get the favicon from the url
+    const urlRegex = new RegExp(/:\/\/(.*)\/.*/i);
+    const urlMatch = url.match(urlRegex);
+    console.log(urlMatch);
+    const clippedUrl = urlMatch![1];
+
+    const resolvedUrl =
+      'https://www.google.com/s2/favicons?sz=256&domain_url=' + clippedUrl;
+
+    console.log(resolvedUrl);
+    const res = await axios.get(resolvedUrl, {
+      withCredentials: false,
+      headers: { 'Access-Control-Allow-Origin': '*' },
+    });
+    icon = await res.data;
+    console.log(icon);
+  } catch (err) {
+    // better error handling needed
+    console.log(err);
+  }
+
+  return icon;
+}
+
 async function load(id: number) {
   try {
-    const res = await axios.get('http://localhost:4000/GET PATH');
-
+    const res = await axios.get('http://localhost:4000/LOAD PATH');
     return res.data;
   } catch (err) {
     console.log(err);
@@ -37,42 +59,20 @@ async function save(event: FormEvent<HTMLFormElement>) {
   }
 }
 
-const ApplicationForm = (props: AppProps) => {
+export default function CompanyForm(props: CompanyProps) {
   const inputFields: Array<InputField> = [
     {
-      company: {
-        value: props.company_name,
+      name: {
+        value: undefined,
         type: 'text',
         title: 'Company Name',
-        readonly: true,
       },
     },
     {
-      position: {
+      website: {
         value: undefined,
         type: 'text',
-        title: 'Position Title',
-      },
-    },
-    {
-      application_url: {
-        value: undefined,
-        type: 'text',
-        title: 'Application URL',
-      },
-    },
-    {
-      salary: {
-        value: undefined,
-        type: 'text',
-        title: 'Listed Salary',
-      },
-    },
-    {
-      status: {
-        value: 'interested',
-        type: 'text',
-        title: 'Application Status',
+        title: 'Company URL',
       },
     },
     {
@@ -92,13 +92,18 @@ const ApplicationForm = (props: AppProps) => {
       },
     },
     {
-      company_id: {
-        value: props.company_id,
+      id: {
+        value: props.id,
       },
     },
   ];
 
   useEffect(() => {
+    // async function loadIcon() {
+    //   const icon = await getIcon('http://www.google.com');
+    //   console.log(icon);
+    // }
+    // loadIcon();
     if (props.id) {
       // why is getId returning a Promise, did I mess this up?
       load(props.id).then((existingData) => {
@@ -115,7 +120,7 @@ const ApplicationForm = (props: AppProps) => {
   return (
     <form
       onSubmit={save}
-      aria-label='edit_application'
+      aria-label='edit_company'
       className='mt-10 sm:mx-auto sm:w-full sm:max-w-sm space-y-6'
     >
       {hiddenFields.map((field: InputField) => {
@@ -175,11 +180,9 @@ const ApplicationForm = (props: AppProps) => {
           key='submit'
           className='flex w-full justify-center rounded-md bg-indigo-600 px-3 py-1.5 text-sm font-semibold leading-6 text-white shadow-sm hover:bg-indigo-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600'
         >
-          Save Application
+          Save Company
         </button>
       </div>
     </form>
   );
-};
-
-export default ApplicationForm;
+}
