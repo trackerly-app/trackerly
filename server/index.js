@@ -9,9 +9,7 @@ import db from './models/applicationModel.js'; // Database connection and querie
 import cookieParser from 'cookie-parser';
 import session from 'express-session';
 import dotenv from 'dotenv';
-
 dotenv.config();
-
 
 const app = express();
 
@@ -209,13 +207,14 @@ app.post('/company', async (req, res) => {
     const {name, website, user_id, notes} = req.body;
     console.log(name, website, user_id, notes);
     // Check if the company exists
-    const queryString = `SELECT * FROM companies WHERE user_id=$1 and name=$2`;
+    let queryString = `SELECT * FROM companies WHERE user_id=$1 and name=$2`;
     const data = await db.query(queryString,[user_id, name]);
-    console.log(data.rows);
-    if(data.rows.length)
+    console.log('rows',data.rows);
+    if(data.rows.length !== 0)
       return res.status(400).json({ message: "Company exists already" });
 
     //Insert new company
+    console.log('inserting');
     queryString = `INSERT INTO companies (name, website, user_id, notes) VALUES ($1, $2, $3, $4)`;
     await db.query(queryString,[name, website, user_id, notes]);
     return res.status(200).json({ message: "Company added" });
