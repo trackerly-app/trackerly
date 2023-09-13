@@ -95,9 +95,11 @@ describe('ApplicationForm has elements', () => {
     expect(handleOnSubmitMock).toHaveBeenCalled();
   });
 
+  // we are holding off on client-side validation for now
   xtest('submit will not fire if required fields are empty', () => {});
 });
 
+// need more research into integration testing
 xdescribe('ApplicationForm manipulates data', () => {
   test('imports data when there is a props.id', () => {});
 });
