@@ -14,9 +14,13 @@ export async function getIcon(url: string): Promise<string> {
 
   try {
     // get the favicon from the url
+    const urlRegex = new RegExp(/:\/\/(.*)\/.*/i);
+    const urlMatch = url.match(urlRegex);
+    console.log(urlMatch);
+    const clippedUrl = urlMatch![1];
 
     const resolvedUrl =
-      'https://www.google.com/s2/favicons?sz=256&domain_url=' + url;
+      'https://www.google.com/s2/favicons?sz=256&domain_url=' + clippedUrl;
 
     console.log(resolvedUrl);
     const res = await axios.get(resolvedUrl, {
