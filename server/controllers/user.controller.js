@@ -1,85 +1,96 @@
-import jwt from 'jwt';
+// Import modules
 import bcrypt from 'bcrypt';
-import session from 'express-session';
-import cookieParser from 'cookie-parser';
+// Import controllers
+import log from '../logging/log.js';
 import db from '../models/applicationModel.js';
 
-export const registerUser = async () => {
+// Registers new user in database - POST requeset to '/signup'
+export const registerUser = async (req, res, next) => {
+  log.info('[userCtrl - registerUser] Attempting to register user in database...');
+  // Sanitize information in request body
   const { email, username, password } = req.body;
   try {
+    // Query string for users matching email on request body
     const userQuery = 'SELECT * FROM users WHERE email = $1';
-    const result = await db.query(userQuery, [email]);
+    // Search database for email from sanitized and parameterized request body
+    const user = await db.query(userQuery, [email]);
 
-    if (result.rows.length > 0) {
-      return res.status(400).json({ message: 'Email is already in use' });
+    // If the email already exists in the database, throw an error
+    if (user.rows.length > 0) {
+      throw new Error('Sorry, something went wrong. Please, try again!');
     }
 
+    // Creates a hashed password with a salt factor of 10 using bcrypt
     const hashedPassword = await bcrypt.hash(password, 10);
-    res.cookie('userEmail', email, { maxAge: 3600000, httpOnly: true });
+    
+    /**
+     * Test, then ask @Anatoliy if this route is still necessary.
+     * Cookies are now handled in separate middleware.
+     * 
+     * res.cookie('userEmail', email, { maxAge: 3600000, httpOnly: true });
+     */
 
-    //  Save the user to the database
+    // Query string for inserting users into database
     const queryString = `INSERT INTO users (username, email, password) VALUES ($1, $2, $3)`;
-    await db.query(queryString,[username, email, hashedPassword]);
+    // Create new user in database from sanitized and parameterized request body
+    const result = await db.query(queryString,[username, email, hashedPassword]);
 
-    res.locals.register = { message: 'Registration success.' };
-    return next(res.locals.register);
+    // Assign message and created user row from query to res.locals
+    res.locals.result = {
+      message: 'User added successfully',
+      user: result.rows[0],
+    };
+
+    log.info('[userCtrl - registerUser] User successfully registered in database.');
+    // Proceed to next middleware
+    return next();
   } catch (err) {
+    // Return error information to global error handler
     return next({
-      log: '[userCtrl - registerUser] There was a problem signing up',
+      log: 'There was a problem signing up',
       status: err.status,
       message: err.message
     });
   }
 };
 
-export const verifyUser = async () => {
+// Verifies user from database - POST requeset to '/login'
+export const verifyUser = async (req, res, next) => {
+  log.info('[userCtrl - verifyUser] Attempting to verify user from database...');
+  // Sanitize information in request body
   const { email, password } = req.body;
   try {
+    // Query string for users matching email on request body
     const userQuery = 'SELECT * FROM users WHERE email = $1';
-    const data = await db.query(queryString, [email]);
+    // Search database for user from sanitized and parameterized request body
+    const user = await db.query(userQuery, [email]);
 
-    if (data.rows.length === 0) {
-      throw new Error('[userCtrl - verifyUser] Unable to verify user credentials');
+    // If the email does NOT exist in the database, throw an error
+    if (user.rows.length === 0) {
+      throw new Error('Sorry, something went wrong. Please, try again!');
     }
 
-    const { password: hashedPass, id } = data.rows[0];
+    // Destructure password as hashedPass and id as uid from found user
+    const { password: hashedPass, id: uid } = user.rows[0];
+    // Compare plaintext password with hashed password from database using bcrypt
     const match = await bcrypt.compare(password, hashedPass);
 
-    if (match) {
-      const token = jwt.sign({ email: email }, 'YOUR_SECRET_KEY', { expiresIn: '1h' });
-      res.locals.match = { token, id: id };
-
-      return next(res.locals.match);
-    } else {
-      throw new Error('[userCtrl - verifyUser] Unable to verify user credentials');
-    }
-  } catch (err) {
-    return next({
-      log: '[userCtrl - verifyUser] There was a problem verifying user',
-      status: err.status,
-      message: err.message
-    });
-  }
-};
-
-export const addCompany = async () => {
-  const {name, website, user_id, notes} = req.body;
-  try {
-    const query = `SELECT * FROM companies WHERE user_id=$1 and name=$2`;
-    const data = await db.query(queryString,[user_id, name]);
-
-    if(data.rows.length) {
-      throw new Error('Company already exists')
+    // If the password does NOT match, throw an error
+    if (!match) {
+      throw new Error('Sorry, something went wrong. Please, try again!');
     }
 
-    //Insert new company
-    queryString = `INSERT INTO companies (name, website, user_id, notes) VALUES ($1, $2, $3, $4)`;
-    await db.query(queryString, [name, website, user_id, notes]);
+    // Assign uid to res.locals
+    res.locals.uid = uid;
 
-    return res.status(200).json({ message: "Company added" });
+    log.info('[userCtrl - registerUser] User successfully verified from database.');
+    // Proceed to next middleware
+    return next();
+    
   } catch (err) {
+    // Return error information to global error handler
     return next({
-      log: '[userCtrl - addCompany] There was a problem adding company',
+      log: 'There was a problem verifying user',
       status: err.status,
       message: err.message
     });
