@@ -95,11 +95,11 @@ export default function CompanyForm(props: CompanyProps) {
   ];
 
   useEffect(() => {
-    async function loadIcon() {
-      const icon = await getIcon('http://www.google.com');
-      console.log(icon);
-    }
-    loadIcon();
+    // async function loadIcon() {
+    //   const icon = await getIcon('http://www.google.com');
+    //   console.log(icon);
+    // }
+    // loadIcon();
     if (props.id) {
       // why is getId returning a Promise, did I mess this up?
       load(props.id).then((existingData) => {
