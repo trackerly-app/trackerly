@@ -8,7 +8,7 @@ import cookieParser from 'cookie-parser';
 import setTokenCookie from './controllers/cookie.controller.js'
 import { generateToken } from './controllers/jwt.controller.js';
 import { registerUser, verifyUser } from './controllers/user.controller.js';
-import { addCompany, addApplication } from './controllers/track.controller.js';
+import { addCompany, addApplication, getCompanies, updateCompany } from './controllers/track.controller.js';
 
 config();
 const app = express();
@@ -49,9 +49,21 @@ app.post('/login', verifyUser, generateToken, setTokenCookie, (req, res) => {
   return res.status(200).json(res.locals.id);
 });
 
-app.post('/company', addCompany, (req, res) => {
-  return res.status(200).json(res.locals.result);
+app.get('/company', getCompanies, (req, res) => {
+  return res.status(200).json(res.locals.companies);
 });
+
+app.post('/company', addCompany, (req, res) => {
+  return res.status(201).json(res.locals.result);
+});
+
+app.put('/company', updateCompany, (req, res) => {
+  return res.status(200).json(res.locals.company)
+})
+
+app.delete('/company', deleteCompany, (req, res) => {
+  return res.status(200).json(res.locals.company)
+})
 
 app.post('/application', addApplication, (req, res) => {
   return res.status(200).json(res.locals.result);
