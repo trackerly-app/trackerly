@@ -1,7 +1,62 @@
+'use client';
+
 import Image from 'next/image';
 import Link from 'next/link';
+import { redirect, useRouter } from 'next/navigation';
 import logo from 'public/trackerly.svg';
-const login: React.FC = () => {
+import axios from 'axios';
+import React, { FormEvent, useRef, useState } from 'react';
+import useStore from '../store';
+
+// make these required as implementation increases
+type ValidInput = {
+	username?: string,
+	password?: string,
+	confirmPassword: string
+}
+
+const defaultValidInput = {
+	confirmPassword: ''
+}
+
+const signup: React.FC = () => {
+	const username = useRef<HTMLInputElement>(null);
+	const email = useRef<HTMLInputElement>(null);
+	const password = useRef<HTMLInputElement>(null);
+	const passwordConfirm = useRef<HTMLInputElement>(null);
+
+	const [error, setError] = useState<ValidInput>(defaultValidInput);
+	const {setUserId} = useStore();
+	const { push } = useRouter();
+
+	const validate = () => {
+		if (password.current?.value !== passwordConfirm.current?.value) {
+			setError({
+				confirmPassword: 'Passwords do not match'
+			})
+		} else {
+			setError(defaultValidInput)
+		}
+	}
+	
+	async function signUpUser(event: FormEvent<HTMLFormElement>) {
+		event.preventDefault();
+	
+		if (error.confirmPassword) return;
+		try {
+			const formData = new FormData(event.currentTarget);
+			const res = await axios.post('http://localhost:4000/signup', formData, {headers: {'Content-Type': 'application/json'}});
+
+			// what do we do from here? return home?
+			if (res.status === 200) {
+				setUserId(res.data)
+				push('/dashboard');
+			}
+		} catch (err) {
+			console.log(err);
+		}
+	}
+
 	return (
 		<>
 			<div className="flex min-h-full flex-1 flex-col justify-center px-6 py-12 lg:px-8">
@@ -13,7 +68,7 @@ const login: React.FC = () => {
 				</div>
 
 				<div className="mt-10 sm:mx-auto sm:w-full sm:max-w-sm">
-					<form className="space-y-6" action="#" method="POST">
+					<form className="space-y-6" onSubmit={signUpUser}>
 						<div>
 							<label
 								htmlFor="username"
@@ -26,6 +81,7 @@ const login: React.FC = () => {
 									id="username"
 									name="username"
 									type="text"
+									ref={username}
 									required
 									className="block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-violet-600 sm:text-sm sm:leading-6"
 								/>
@@ -44,6 +100,7 @@ const login: React.FC = () => {
 									name="email"
 									type="email"
 									autoComplete="email"
+									ref={email}
 									required
 									className="block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-violet-600 sm:text-sm sm:leading-6"
 								/>
@@ -65,6 +122,8 @@ const login: React.FC = () => {
 									name="password"
 									type="password"
 									autoComplete="current-password"
+									onChange={validate}
+									ref={password}
 									required
 									className="block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-violet-600 sm:text-sm sm:leading-6"
 								/>
@@ -81,14 +140,17 @@ const login: React.FC = () => {
 							</div>
 							<div className="mt-2">
 								<input
-									id="password"
-									name="password"
+									id="passwordConfirm"
+									name="passwordConfirm"
 									type="password"
 									autoComplete="current-password"
 									required
+									ref={passwordConfirm}
+									onChange={validate}
 									className="block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-violet-600 sm:text-sm sm:leading-6"
 								/>
 							</div>
+							{error.confirmPassword && <span className='error'>{error.confirmPassword}</span>}
 						</div>
 
 						<div>
@@ -116,4 +178,4 @@ const login: React.FC = () => {
 	);
 };
 
-export default login;
+export default signup;

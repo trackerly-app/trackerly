@@ -16,7 +16,7 @@ export function validateData(data: FormData) {}
 // a function to call if the application has an id
 async function load(id: number) {
   try {
-    const res = await axios.get('http://localhost:4000/GET PATH');
+    const res = await axios.get('http://localhost:4000/application/' + id);
 
     return res.data;
   } catch (err) {
@@ -29,9 +29,10 @@ async function save(event: FormEvent<HTMLFormElement>) {
 
   try {
     const formData = new FormData(event.currentTarget);
-    const res = await axios.post('http://localhost:4000/SAVE PATH', formData);
+    const res = await axios.post('http://localhost:4000/application', formData, {headers: {'Content-Type': 'application/json'}});
 
     // what do we do from here? return home?
+    
   } catch (err) {
     console.log(err);
   }

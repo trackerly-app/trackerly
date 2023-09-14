@@ -9,9 +9,10 @@ export const registerUser = async (req, res, next) => {
   log.info('[userCtrl - registerUser] Attempting to register user in database...');
   // Sanitize information in request body
   const { email, username, password } = req.body;
+  
   try {
     // Query string for users matching email on request body
-    const userQuery = 'SELECT * FROM users WHERE email = $1';
+    const userQuery = 'SELECT * FROM users WHERE email = $1;';
     // Search database for email from sanitized and parameterized request body
     const user = await db.query(userQuery, [email]);
 
@@ -22,7 +23,7 @@ export const registerUser = async (req, res, next) => {
 
     // Creates a hashed password with a salt factor of 10 using bcrypt
     const hashedPassword = await bcrypt.hash(password, 10);
-    
+
     /**
      * Test, then ask @Anatoliy if this route is still necessary.
      * Cookies are now handled in separate middleware.
@@ -31,25 +32,24 @@ export const registerUser = async (req, res, next) => {
      */
 
     // Query string for inserting users into database
-    const queryString = `INSERT INTO users (username, email, password) VALUES ($1, $2, $3)`;
+    const queryString = `INSERT INTO users (username, email, password) VALUES ($1, $2, $3) RETURNING *`;
     // Create new user in database from sanitized and parameterized request body
     const result = await db.query(queryString,[username, email, hashedPassword]);
+    console.log(result);
 
     // Assign message and created user row from query to res.locals
-    res.locals.result = {
-      message: 'User added successfully',
-      user: result.rows[0],
-    };
+    res.locals.uid = result.rows[0].id;
 
     log.info('[userCtrl - registerUser] User successfully registered in database.');
     // Proceed to next middleware
     return next();
   } catch (err) {
+    console.log(err);
     // Return error information to global error handler
     return next({
       log: 'There was a problem signing up',
-      status: err.status,
-      message: err.message
+      status: err.status || 500,
+      message: err.message || err
     });
   }
 };
@@ -59,6 +59,7 @@ export const verifyUser = async (req, res, next) => {
   log.info('[userCtrl - verifyUser] Attempting to verify user from database...');
   // Sanitize information in request body
   const { email, password } = req.body;
+ 
   try {
     // Query string for users matching email on request body
     const userQuery = 'SELECT * FROM users WHERE email = $1';
@@ -67,7 +68,7 @@ export const verifyUser = async (req, res, next) => {
 
     // If the email does NOT exist in the database, throw an error
     if (user.rows.length === 0) {
-      throw new Error('Sorry, something went wrong. Please, try again!');
+      throw new Error('No user with that email was found');
     }
 
     // Destructure password as hashedPass and id as uid from found user
@@ -77,7 +78,7 @@ export const verifyUser = async (req, res, next) => {
 
     // If the password does NOT match, throw an error
     if (!match) {
-      throw new Error('Sorry, something went wrong. Please, try again!');
+      throw new Error('Passwords do not match');
     }
 
     // Assign uid to res.locals
@@ -91,8 +92,8 @@ export const verifyUser = async (req, res, next) => {
     // Return error information to global error handler
     return next({
       log: 'There was a problem verifying user',
-      status: err.status,
-      message: err.message
+      status: err.status || 500,
+      message: err.message || err
     });
   }
 };
