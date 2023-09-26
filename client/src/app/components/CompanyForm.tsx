@@ -51,7 +51,9 @@ async function save(event: FormEvent<HTMLFormElement>) {
 
   try {
     const formData = new FormData(event.currentTarget);
-    const res = await axios.post('http://localhost:4000/SAVE PATH', formData);
+    const res = await axios.post('http://localhost:4000/SAVE PATH', formData, {
+      headers: { 'Content-Type': 'application/json' },
+    });
 
     // what do we do from here? return home?
   } catch (err) {
