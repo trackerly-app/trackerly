@@ -6,7 +6,7 @@ import { redirect, useRouter } from 'next/navigation';
 import logo from 'public/trackerly.svg';
 import axios from 'axios';
 import React, { FormEvent, useRef, useState } from 'react';
-import useStore from '../store';
+import useStore from '../../lib/store';
 
 // make these required as implementation increases
 type ValidInput = {

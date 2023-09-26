@@ -3,7 +3,7 @@ import Link from 'next/link';
 import React from 'react';
 import logo from 'public/trackerly.svg';
 import ApplicationButton from '../components/ApplicationButton';
-import useStore from '../store';
+import useStore from '../../lib/store';
 
 const Sidebar = () => {
   const { applications } = useStore();

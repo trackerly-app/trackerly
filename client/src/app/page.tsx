@@ -6,7 +6,7 @@ import { redirect, useRouter } from 'next/navigation';
 import logo from 'public/trackerly.svg';
 import axios from 'axios';
 import { FormEvent, useRef } from 'react';
-import useStore from './store';
+import useStore from '../lib/store';
 
 async function googleOAuth(
   event: React.MouseEvent<HTMLButtonElement, MouseEvent>

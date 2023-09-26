@@ -1,7 +1,7 @@
 'use client';
 
 import ApplicationForm from '../components/ApplicationForm';
-import useStore from '../store';
+import useStore from '../../lib/store';
 import { useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 

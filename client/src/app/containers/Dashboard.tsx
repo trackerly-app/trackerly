@@ -2,7 +2,7 @@
 
 import React, { useEffect } from 'react';
 import ApplicationList from '../components/ApplicationList';
-import useStore from '../store';
+import useStore from '../../lib/store';
 import axios from 'axios';
 
 const Dashboard = () => {

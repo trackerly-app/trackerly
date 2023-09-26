@@ -4,11 +4,12 @@ import Dashboard from '../containers/Dashboard';
 import Sidebar from '../containers/Sidebar';
 import React, { useEffect } from 'react';
 import axios from 'axios';
-import useStore from '../store';
+import useStore from '../../lib/store';
 import { useRouter } from 'next/navigation';
 
 const page = () => {
-  const { user_id, applications, setApplications, setCompanies } = useStore();
+  const { user_id, applications, setApplications, setCompanies, setResumes } =
+    useStore();
   const { push } = useRouter();
 
   function createApplication() {
@@ -16,20 +17,31 @@ const page = () => {
   }
 
   async function getApplications() {
-    const res = await axios.get('http://localhost:4000/allapps/' + user_id);
+    const res = await axios.get(
+      'http://localhost:4000/users/getAllApps/' + user_id
+    );
     console.log(res);
     setApplications(res.data);
   }
 
   async function getCompanies() {
-    const res = await axios.get('http://localhost:4000/company/' + user_id);
+    const res = await axios.get(
+      'http://localhost:4000/users/getCompanies/' + user_id
+    );
     console.log(res.data);
     setCompanies(res.data);
+  }
+
+  async function getResumes() {
+    const res = await axios.get('http://localhost:4000/getResumes/' + user_id);
+    console.log(res.data);
+    setResumes(res.data);
   }
 
   useEffect(() => {
     getApplications();
     getCompanies();
+    getResumes();
   }, []);
 
   return (
