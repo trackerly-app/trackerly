@@ -10,7 +10,7 @@ This project is divided into two main parts:
 Clone the repository to your local machine:
 
 ```bash
-git clone https://github.com/yourusername/your-project-name.git
+git clone https://github.com/trackerly-app/trackerly.git
 ```
 
 ## Running the Client
